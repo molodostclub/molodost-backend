@@ -41,7 +41,7 @@ jobs:
             echo "Pulling new backend image"
             docker pull ghcr.io/molodostclub/molodost-backend:latest
             echo "Updating backend service"
-            docker service update molodost_backend \
+            docker service update molodost_admin \
               --image ghcr.io/molodostclub/molodost-backend:latest \
               --with-registry-auth \
               --force
