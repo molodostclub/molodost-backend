@@ -1,0 +1,6 @@
+---
+  swarm_manager_interface: 62.109.1.54
+  domain_landing: molodost.club
+  domain_admin: admin.molodost.club
+  letsencrypt_email: germangorodnev@gmail.com
+  traefik_version: 1.7.34

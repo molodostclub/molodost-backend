@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_ecosystem_entry_ecosystem_entries",
+  "info": {
+    "displayName": "Ecosystem Entry",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "pagePath": {
+      "type": "text"
+    },
+    "trip": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::trip.trip"
+    }
+  }
+}

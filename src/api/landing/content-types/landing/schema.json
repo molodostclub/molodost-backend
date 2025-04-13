@@ -1,0 +1,15 @@
+{
+  "kind": "singleType",
+  "collectionName": "landings",
+  "info": {
+    "singularName": "landing",
+    "pluralName": "landings",
+    "displayName": "Landing",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {}
+}

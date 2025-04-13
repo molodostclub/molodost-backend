@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_note_notes",
+  "info": {
+    "displayName": "Note",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "text": {
+      "type": "string"
+    }
+  }
+}

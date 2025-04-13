@@ -1,0 +1,44 @@
+name: Deploy playbook
+on:
+  push:
+    branches: ['infrastructure']
+
+defaults:
+  run:
+    working-directory: ./infrastructure
+
+jobs:
+  run_playbook:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./infrastructure
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create SSH key
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        # with:
+        #   key: {%- raw -%} ${{ secrets.PRIVATE_KEY }}
+        #   known_hosts: 'placeholder'
+      # - name: Adding Known Hosts
+      #   run: ssh-keyscan -H ${{ secrets.SWARM_MANAGER }}{% endraw%} >> ~/.ssh/known_hosts
+      - name: Set up Python 3.8.16
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8.16
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Restore ansible vault key
+        run: echo ${{ secrets.ANSIBLE_VAULT_KEY }} > ~/.vault-key-molodost
+      # - name: Install ansible roles
+      #   run: ansible-galaxy install -r requirements.yml
+      - name: Lint the playbook
+        run: ansible-lint --exclude ~/.ansible/roles/
+      - name: Run the play
+        run: ansible-playbook site.yml

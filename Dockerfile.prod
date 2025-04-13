@@ -1,0 +1,31 @@
+FROM node:18-slim
+
+# Устанавливаем зависимости
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpng-dev \
+    zlib1g-dev \
+    libvips-dev \
+ && apt-get clean
+
+# Устанавливаем переменные окружения
+ENV NODE_ENV=production
+WORKDIR /srv
+
+# Копируем и устанавливаем зависимости
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Копируем весь проект
+COPY . .
+
+# Сборка проекта
+RUN npm run build
+
+# Создаем директорию для временных файлов (нужна Strapi)
+RUN mkdir -p /srv/.tmp/ && chown -R node:node /srv/.tmp/
+
+USER node
+
+EXPOSE 1337
+CMD ["npm", "run", "start"]

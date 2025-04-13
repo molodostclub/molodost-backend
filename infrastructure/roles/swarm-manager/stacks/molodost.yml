@@ -1,0 +1,72 @@
+---
+- name: Deploy environment files
+  template:
+    src: env/{{ item }}
+    dest: /srv/{{ item }}
+  loop:
+    - env.admin
+
+# - name: Deploy test db
+#   template:
+#     src: "{{ item }}"
+#     dest: /srv/{{ item }}
+#     mode: '0755'
+#   loop:
+#     - data.db
+
+- name: Create volumes
+  file:
+    path: /srv/{{ item }}
+    state: directory
+    owner: root
+    group: root
+    mode: '0777'
+  loop:
+    - db
+    - public/uploads
+
+- name: Deploy molodost stack
+  docker_stack:
+    name: molodost
+    with_registry_auth: true
+    resolve_image: never
+    prune: true
+    compose:
+      - version: "3.6"
+        services:
+          admin:
+            image: ghcr.io/germangorodnev/molodost-admin
+            env_file:
+              - /srv/env.admin
+            volumes:
+              - /srv/db:/srv/.tmp/
+              - /srv/public/uploads:/srv/public/uploads
+            deploy:
+              labels:
+                - "traefik.enable=true"
+                - "traefik.port=1337"
+                - "traefik.frontend.redirect.entryPoint=https"
+                - "traefik.frontend.rule=Host:molodost-admin.germangorodnev.com,admin.molodost.club"
+                - "traefik.docker.network=traefiknet"
+            networks:
+              - stacknet
+              - traefiknet
+          landing:
+            image: ghcr.io/germangorodnev/molodost-landing
+            deploy:
+              labels:
+                - traefik.enable=true
+                - traefik.port=3000
+                - traefik.frontend.redirect.entryPoint=https
+                - traefik.frontend.rule=Host:molodost.germangorodnev.com,molodost.club,www.molodost.club
+                - traefik.frontend.redirect.regex=^https?://www.molodost.club/(.*)
+                - traefik.frontend.redirect.replacement=https://molodost.club/$$1
+                - traefik.frontend.redirect.permanent=true
+                - traefik.docker.network=traefiknet
+            networks:
+              - stacknet
+              - traefiknet
+        networks:
+          stacknet:
+          traefiknet:
+            external: true

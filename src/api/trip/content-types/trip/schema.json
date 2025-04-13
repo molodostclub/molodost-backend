@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "trips",
+  "info": {
+    "singularName": "trip",
+    "pluralName": "trips",
+    "displayName": "Trip",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "pictures": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "priceAdult": {
+      "type": "decimal"
+    },
+    "isAllDay": {
+      "type": "boolean",
+      "default": false
+    },
+    "priceChild": {
+      "type": "decimal"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "durationText": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "component",
+      "repeatable": true,
+      "component": "note.note"
+    }
+  }
+}

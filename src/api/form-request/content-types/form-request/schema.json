@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "form_requests",
+  "info": {
+    "singularName": "form-request",
+    "pluralName": "form-requests",
+    "displayName": "FormRequest",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "personName": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    }
+  }
+}

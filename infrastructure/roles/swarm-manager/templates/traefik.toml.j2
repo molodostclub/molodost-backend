@@ -1,0 +1,45 @@
+debug = true
+logLevel = "DEBUG"
+defaultEntryPoints = ["https","http"]
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+  [entryPoints.http.redirect]
+    regex = "^http://(?:www\\.)?(.+)"
+    replacement = "https://$1"
+    permanent = true
+  [entryPoints.https]
+  address = ":443"
+  [entryPoints.https.redirect]
+    regex = "^https://www\\.(.+)"
+    replacement = "https://$1"
+    permanent = true
+  [entryPoints.https.tls]
+    maxVersion = "VersionTLS13"
+
+[retry]
+
+[docker]
+exposedByDefault = false
+swarmMode = true
+watch = true
+
+[acme]
+  email = "germangorodnev@gmail.com"
+  storage = "/acme.json"
+  entryPoint = "https"
+  acmeLogging = true
+  [acme.httpChallenge]
+    entryPoint = "http"
+  [[acme.domains]]
+    main = "molodost.germangorodnev.com"
+  [[acme.domains]]
+    main = "molodost-admin.germangorodnev.com"
+  [[acme.domains]]
+    main = "admin.molodost.club"
+  [[acme.domains]]
+    main = "molodost.club"
+  [[acme.domains]]
+    main = "www.molodost.club"
+
