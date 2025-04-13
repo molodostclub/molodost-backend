@@ -28,4 +28,4 @@ RUN mkdir -p /srv/.tmp/ && chown -R node:node /srv/.tmp/
 USER node
 
 EXPOSE 1337
-CMD ["npm", "run", "start"]
+CMD ["npm", "start"]
