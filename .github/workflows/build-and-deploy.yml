@@ -44,6 +44,6 @@ jobs:
             echo "Force updating backend service"
             docker service update molodost_admin \
               --image ghcr.io/molodostclub/molodost-backend:latest \
-              --env-add APP_KEYS=4f8a2c88b6d347f1ae5e0fc17b0c4d3e,e9c0a64df4c54bb28fc90b769278fc0c
+              --env-add APP_KEYS=4f8a2c88b6d347f1ae5e0fc17b0c4d3e,e9c0a64df4c54bb28fc90b769278fc0c \
               --with-registry-auth \
               --force
