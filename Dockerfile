@@ -1,26 +1,23 @@
-FROM node:18-alpine
+FROM node:18-slim
 
-# Установка зависимостей для sharp
-RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev nasm bash vips-dev
-
-# === Шаг 1: Установим переменные окружения
-ARG NODE_ENV=production
-ARG NEXT_PUBLIC_API_URL=https://admin.molodost.club
-
-ENV NODE_ENV=$NODE_ENV
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-
-# === Шаг 2: Установка зависимостей
 WORKDIR /opt/
+
+# Установка зависимостей для sharp и других нативных модулей
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3 \
+    make \
+    g++ \
+    libvips-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Установка пакетов
 COPY ./package.json ./package-lock.json ./
-ENV PATH /opt/node_modules/.bin:$PATH
 RUN npm install
 
-# === Шаг 3: Сборка проекта
-WORKDIR /opt/app
+# Копирование кода и сборка
 COPY . .
 RUN npm run build
 
-# === Шаг 4: Запуск (если SSR Next.js, то оставь как есть)
-EXPOSE 3000
-CMD ["npm", "start"]
+EXPOSE 4000
+CMD ["npm", "run", "start:prod"]
