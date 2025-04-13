@@ -45,10 +45,29 @@ jobs:
             echo "Pulling new backend image"
             docker pull ghcr.io/molodostclub/molodost-backend:latest
 
-            echo "Updating backend service with volumes"
-            docker service update molodost_admin \
-              --image ghcr.io/molodostclub/molodost-backend:latest \
-              --mount-add type=bind,src=/srv/molodost-admin/public/uploads,dst=/srv/app/public/uploads \
-              --mount-add type=bind,src=/srv/db,dst=/srv/app/.tmp \
+            echo "Removing existing service to reapply updated mounts"
+            docker service rm molodost_admin || true
+
+            echo "Recreating backend service with correct volume mounts"
+            docker service create \
+              --name molodost_admin \
+              --network molodost_stacknet \
+              --network traefiknet \
+              --label com.docker.stack.namespace=molodost \
+              --label com.docker.stack.image=ghcr.io/molodostclub/molodost-backend \
+              --label traefik.enable=true \
+              --label traefik.docker.network=traefiknet \
+              --label traefik.frontend.rule=Host:molodost-admin.germangorodnev.com,admin.molodost.club \
+              --label traefik.port=1337 \
+              --mount type=bind,src=/srv/molodost-admin/public/uploads,dst=/srv/app/public/uploads \
+              --mount type=bind,src=/srv/db,dst=/srv/app/.tmp \
+              --env NODE_ENV=production \
+              --env DATABASE_CLIENT=sqlite \
+              --env DATABASE_FILENAME=.tmp/data.db \
+              --env ADMIN_JWT_SECRET=${{ secrets.ADMIN_JWT_SECRET }} \
+              --env API_TOKEN_SALT=${{ secrets.API_TOKEN_SALT }} \
+              --env APP_KEYS=${{ secrets.APP_KEYS }} \
+              --env JWT_SECRET=${{ secrets.JWT_SECRET }} \
+              --env TRANSFER_TOKEN_SALT=${{ secrets.TRANSFER_TOKEN_SALT }} \
               --with-registry-auth \
-              --force
+              ghcr.io/molodostclub/molodost-backend:latest
