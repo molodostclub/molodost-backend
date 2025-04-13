@@ -81,7 +81,7 @@ export default ({ env }) => {
     },
     sqlite: {
       connection: {
-        filename: path.resolve('.tmp/data.db'),
+        filename: '/srv/db/data.db',
       },
       useNullAsDefault: true,
     },
