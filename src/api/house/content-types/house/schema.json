@@ -51,6 +51,9 @@
     "isMars": {
       "type": "boolean"
     },
+    "isBaikal": {
+      "type": "boolean"
+    },
     "video": {
       "allowedTypes": [
         "videos"
