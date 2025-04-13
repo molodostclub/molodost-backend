@@ -49,6 +49,7 @@ jobs:
             docker service update molodost_admin \
               --image ghcr.io/molodostclub/molodost-backend:latest \
               --mount-add type=bind,src=/srv/molodost-admin/public/uploads,dst=/srv/app/public/uploads \
-              --mount-add type=bind,src=/srv/db,dst=/srv/app/.tmp \
+              --mount-add type=bind,src=/srv/db/data.db,dst=/srv/app/.tmp/data.db \
               --with-registry-auth \
               --force
+
