@@ -38,9 +38,10 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            echo "Pulling new backend image"
+            echo "Pulling latest backend image"
             docker pull ghcr.io/molodostclub/molodost-backend:latest
-            echo "Updating backend service"
+
+            echo "Force updating backend service"
             docker service update molodost_admin \
               --image ghcr.io/molodostclub/molodost-backend:latest \
               --with-registry-auth \
