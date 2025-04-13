@@ -41,7 +41,7 @@ jobs:
             echo "Pulling latest backend image"
             docker pull ghcr.io/molodostclub/molodost-backend:latest
 
-            echo "Force updating backend service"
+            echo "Force updating backend service with mounted DB and secrets"
             docker service update molodost_admin \
               --image ghcr.io/molodostclub/molodost-backend:latest \
               --env-add APP_KEYS=${{ secrets.APP_KEYS }} \
@@ -49,5 +49,7 @@ jobs:
               --env-add ADMIN_JWT_SECRET=${{ secrets.ADMIN_JWT_SECRET }} \
               --env-add JWT_SECRET=${{ secrets.JWT_SECRET }} \
               --env-add TRANSFER_TOKEN_SALT=${{ secrets.TRANSFER_TOKEN_SALT }} \
+              --mount-add type=bind,src=/srv/db/data.db,dst=/srv/app/.tmp/data.db \
+              --mount-add type=bind,src=/srv/molodost-admin/public/uploads,dst=/srv/app/public/uploads \
               --with-registry-auth \
               --force
