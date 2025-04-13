@@ -38,10 +38,17 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            echo "Creating persistent directories if not exist"
+            mkdir -p /srv/molodost-admin/public/uploads
+            mkdir -p /srv/db
+
             echo "Pulling new backend image"
             docker pull ghcr.io/molodostclub/molodost-backend:latest
-            echo "Updating backend service"
+
+            echo "Updating backend service with volumes"
             docker service update molodost_admin \
               --image ghcr.io/molodostclub/molodost-backend:latest \
+              --mount-add type=bind,src=/srv/molodost-admin/public/uploads,dst=/srv/app/public/uploads \
+              --mount-add type=bind,src=/srv/db,dst=/srv/app/.tmp \
               --with-registry-auth \
               --force
