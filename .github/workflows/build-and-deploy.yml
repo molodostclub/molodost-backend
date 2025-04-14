@@ -38,18 +38,26 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
             echo "Pulling latest backend image"
             docker pull ghcr.io/molodostclub/molodost-backend:latest
 
-            echo "Force updating backend service with mounted DB and uploads"
-            docker service update molodost-backend \
-              --image ghcr.io/molodostclub/molodost-backend:latest \
-              --env-add APP_KEYS=${{ secrets.APP_KEYS }} \
-              --env-add API_TOKEN_SALT=${{ secrets.API_TOKEN_SALT }} \
-              --env-add ADMIN_JWT_SECRET=${{ secrets.ADMIN_JWT_SECRET }} \
-              --env-add JWT_SECRET=${{ secrets.JWT_SECRET }} \
-              --env-add TRANSFER_TOKEN_SALT=${{ secrets.TRANSFER_TOKEN_SALT }} \
-              --mount-add type=bind,src=/root/1/srv/db,dst=/app/.tmp \
-              --mount-add type=bind,src=/root/1/srv/public/uploads,dst=/app/public/uploads \
-              --with-registry-auth \
-              --force
+            echo "Stopping and removing old container"
+            docker stop molodost-backend || true
+            docker rm molodost-backend || true
+
+            echo "Running new container"
+            docker run -d \
+              --name molodost-backend \
+              --restart always \
+              -e APP_KEYS=${{ secrets.APP_KEYS }} \
+              -e API_TOKEN_SALT=${{ secrets.API_TOKEN_SALT }} \
+              -e ADMIN_JWT_SECRET=${{ secrets.ADMIN_JWT_SECRET }} \
+              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+              -e TRANSFER_TOKEN_SALT=${{ secrets.TRANSFER_TOKEN_SALT }} \
+              -v /root/1/srv/db:/app/.tmp \
+              -v /root/1/srv/public/uploads:/app/public/uploads \
+              -p 1337:1337 \
+              ghcr.io/molodostclub/molodost-backend:latest
+
