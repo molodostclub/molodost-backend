@@ -42,14 +42,14 @@ jobs:
             docker pull ghcr.io/molodostclub/molodost-backend:latest
 
             echo "Force updating backend service with mounted DB and uploads"
-            docker service update molodost_admin \
+            docker service update molodost-backend \
               --image ghcr.io/molodostclub/molodost-backend:latest \
               --env-add APP_KEYS=${{ secrets.APP_KEYS }} \
               --env-add API_TOKEN_SALT=${{ secrets.API_TOKEN_SALT }} \
               --env-add ADMIN_JWT_SECRET=${{ secrets.ADMIN_JWT_SECRET }} \
               --env-add JWT_SECRET=${{ secrets.JWT_SECRET }} \
               --env-add TRANSFER_TOKEN_SALT=${{ secrets.TRANSFER_TOKEN_SALT }} \
-              --mount-add type=bind,src=/root/1/srv/db,dst=/app/data \
+              --mount-add type=bind,src=/root/1/srv/db,dst=/app/.tmp \
               --mount-add type=bind,src=/root/1/srv/public/uploads,dst=/app/public/uploads \
               --with-registry-auth \
               --force
