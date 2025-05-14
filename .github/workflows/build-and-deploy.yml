@@ -56,8 +56,8 @@ jobs:
               -e ADMIN_JWT_SECRET=${{ secrets.ADMIN_JWT_SECRET }} \
               -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
               -e TRANSFER_TOKEN_SALT=${{ secrets.TRANSFER_TOKEN_SALT }} \
-              -v /root/1/srv/db:/srv/db \
-              -v /root/1/srv/public/uploads:/opt/public/uploads \
+              -v /srv/public/database/data.db:/srv/db/data.db \
+              -v /srv/public/uploads:/opt/public/uploads \
               -p 1337:1337 \
               ghcr.io/molodostclub/molodost-backend:latest
 

@@ -33,6 +33,9 @@
     "basePrice": {
       "type": "decimal"
     },
+    "basePrice2": {
+      "type": "decimal"
+    },
     "pictures": {
       "type": "media",
       "multiple": true,
