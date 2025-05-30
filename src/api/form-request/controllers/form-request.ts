@@ -101,8 +101,8 @@ export default factories.createCoreController(
           port: 465,
           secure: true,
           auth: {
-            user: "admin@molodost.club",
-            pass: "a6VZ&mqk",
+            user: "order@molodost.club",
+            pass: "Iun7S%3s6EtA",
           },
         });
 
