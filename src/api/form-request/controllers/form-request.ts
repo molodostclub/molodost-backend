@@ -16,7 +16,7 @@ async function sendWhatsAppMessage(phoneNumber: string, message: string) {
     body: message,
     typing_time: 5,
     no_link_preview: true,
-    mentions: ["79139911133@s.whatsapp.net"],
+    mentions: ["79647002112@s.whatsapp.net"],
     view_once: false,
   };  
 
