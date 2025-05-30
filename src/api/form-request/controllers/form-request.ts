@@ -18,7 +18,7 @@ async function sendWhatsAppMessage(phoneNumber: string, message: string) {
     no_link_preview: true,
     mentions: ["79647002112@s.whatsapp.net"],
     view_once: false,
-  };  
+  };
 
   try {
     const response = await axios.post(
@@ -94,6 +94,8 @@ export default factories.createCoreController(
 
       (async function () {
         const message = `Спасибо за ответы!\n\n${name}, мы свяжемся с вами в течение 24 часов, чтобы мы смогли ответить на все оставшиеся вопросы ваши к нам и наши к вам.`;
+        console.log(`Phone number: ${whatsapp}`);
+        await sendWhatsAppMessage(whatsapp, message);
         const transporter = nodemailer.createTransport({
           host: "smtp.beget.com",
           port: 465,
@@ -104,11 +106,12 @@ export default factories.createCoreController(
           },
         });
 
-        await transporter.sendMail({
-          from: "admin@molodost.club",
-          to: "admin@molodost.club",
-          subject: "Заявка с сайта molodost.club",
-          html: `
+        try {
+          await transporter.sendMail({
+            from: "order@molodost.club",
+            to: "admin@molodost.club",
+            subject: "Заявка с сайта molodost.club",
+            html: `
           <h1>Заявка с сайта molodost.club</h1>
           <br>
           <h3>Информация по заявке:</h3><br>
@@ -161,14 +164,17 @@ export default factories.createCoreController(
           <h4>Льготное проживание: ${specOrder || "не указано"}</h4><br>
           <h4>Тип отдыха: ${relaxTypes || "не указан"}</h4><br>
         `,
-        });
-
-        await transporter.sendMail({
-          from: "admin@molodost.club",
-          to: email,
-          subject:
-            "Ваше бронирование на сайте molodost.club почти подтверждено",
-          html: `<html dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="ru">
+          });
+        } catch (err) {
+          console.log("Письмо админу не отправилось.", err);
+        }
+        try {
+          await transporter.sendMail({
+            from: "order@molodost.club",
+            to: email,
+            subject:
+              "Ваше бронирование на сайте molodost.club почти подтверждено",
+            html: `<html dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="ru">
  <head>
   <meta charset="UTF-8">
   <meta content="width=device-width, initial-scale=1" name="viewport">
@@ -314,10 +320,10 @@ a[x-apple-data-detectors] {
  </body>
 </html>
         `,
-        });
-
-        console.log(`Phone number: ${whatsapp}`);
-        await sendWhatsAppMessage(whatsapp, message);
+          });
+        } catch (err) {
+          console.log("Письмо пользователю не отправилось", err);
+        }
       })();
 
       return {
