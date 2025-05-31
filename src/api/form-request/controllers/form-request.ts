@@ -95,12 +95,12 @@ export default factories.createCoreController(
       (async function () {
         const message = `Спасибо за ответы!\n\n${name}, мы свяжемся с вами в течение 24 часов, чтобы мы смогли ответить на все оставшиеся вопросы ваши к нам и наши к вам.`;
         const transporter = nodemailer.createTransport({
-          host: "smtp.beget.com",
+          host: "smtp.yandex.ru",
           port: 465,
           secure: true,
           auth: {
-            user: "admin@molodost.club",
-            pass: "a6VZ&mqk",
+            user: "altay@clubmolodost.ru",
+            pass: "pwdsunjkivypdrkl",
           },
         });
 
