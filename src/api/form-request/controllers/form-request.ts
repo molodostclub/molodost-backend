@@ -108,8 +108,8 @@ export default factories.createCoreController(
 
         try {
           await transporter.sendMail({
-            from: "order@molodost.club",
-            to: "admin@molodost.club",
+            from: "altay@clubmolodost.ru",
+            to: "altay@clubmolodost.ru",
             subject: "Заявка с сайта molodost.club",
             html: `
           <h1>Заявка с сайта molodost.club</h1>
@@ -170,7 +170,7 @@ export default factories.createCoreController(
         }
         try {
           await transporter.sendMail({
-            from: "order@molodost.club",
+            from: "altay@clubmolodost.ru",
             to: email,
             subject:
               "Ваше бронирование на сайте molodost.club почти подтверждено",
