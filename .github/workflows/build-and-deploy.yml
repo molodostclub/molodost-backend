@@ -50,6 +50,8 @@ jobs:
             echo "Running new container"
             docker run -d \
               --name molodost-backend \
+              --network molodost_net \
+              -p 1337:1337 \
               --restart always \
               -e APP_KEYS=${{ secrets.APP_KEYS }} \
               -e API_TOKEN_SALT=${{ secrets.API_TOKEN_SALT }} \
@@ -58,6 +60,5 @@ jobs:
               -e TRANSFER_TOKEN_SALT=${{ secrets.TRANSFER_TOKEN_SALT }} \
               -v /srv/public/database/data.db:/srv/db/data.db \
               -v /srv/public/uploads:/opt/public/uploads \
-              -p 1337:1337 \
               ghcr.io/molodostclub/molodost-backend:latest
 
