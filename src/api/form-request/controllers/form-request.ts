@@ -1,7 +1,3 @@
-/**
- * form-request controller
- */
-
 import nodemailer from "nodemailer";
 import { factories } from "@strapi/strapi";
 import axios from "axios";
@@ -39,11 +35,88 @@ async function sendWhatsAppMessage(phoneNumber: string, message: string) {
   }
 }
 
-
 export default factories.createCoreController(
   "api::form-request.form-request",
   ({ strapi }) => ({
     async create(ctx) {
+      const body = ctx.request.body || {};
+      const files =
+        (ctx.request.files as any) || (ctx.request as any)?.files || null;
+      let file: any = null;
+      if (files) {
+        const cand =
+          (files as any).attachment ||
+          (files as any).file ||
+          (files as any).upload;
+        file = Array.isArray(cand) ? cand[0] : cand;
+      }
+
+      if (file && (file.filepath || file.path || file.buffer)) {
+        const pName = body.name || "";
+        const pSurname = body.surname || "";
+        const pWhatsapp = body.whatsapp || "";
+        const pEmail = body.email || "";
+
+        const message =
+          "Спасибо, что заполнили анкету!\nВ течение 24 часов мы вышлем вам билет в «Молодость» на Алтае.";
+        try {
+          if (pWhatsapp) {
+            await sendWhatsAppMessage(pWhatsapp, message);
+          }
+        } catch (e) {
+          strapi.log.warn("WhatsApp send failed");
+        }
+
+        const transporter = nodemailer.createTransport({
+          host: "smtp.yandex.ru",
+          port: 465,
+          secure: true,
+          auth: {
+            user: "altay@clubmolodost.ru",
+            pass: "pwdsunjkivypdrkl",
+          },
+        });
+
+        const attachment = file.buffer
+          ? {
+              filename: file.originalFilename || file.name || "attachment",
+              content: file.buffer,
+              contentType:
+                file.mimetype || file.type || "application/octet-stream",
+            }
+          : {
+              filename: file.originalFilename || file.name || "attachment",
+              path: file.filepath || file.path,
+              contentType:
+                file.mimetype || file.type || "application/octet-stream",
+            };
+
+        const html = `
+      <h1>Заявка (ПРОМО) с вложением</h1>
+      <br>
+      <h3>Данные пользователя:</h3><br>
+      <h4>Имя: ${pName || "не указано"}</h4><br>
+      <h4>Фамилия: ${pSurname || "не указано"}</h4><br>
+      <h4>WhatsApp: ${pWhatsapp || "не указан"}</h4><br>
+      <h4>E-mail: ${pEmail || "не указан"}</h4><br>
+    `;
+
+        await transporter.sendMail({
+          from: "altay@clubmolodost.ru",
+          to: "altay@clubmolodost.ru",
+          subject: "Заявка: ПРОМО с вложением",
+          html,
+          attachments: [attachment],
+        });
+
+        return {
+          name: pName,
+          surname: pSurname,
+          whatsapp: pWhatsapp,
+          email: pEmail,
+          isPromo: true,
+        };
+      }
       const {
         name,
         surname,
@@ -84,19 +157,15 @@ export default factories.createCoreController(
         relaxTypes,
       } = ctx.request.body;
 
-      // TODO: add backend validation
-      // if (!name) {
-      //   ctx.response.status = 400
-      //   ctx.response.body = {
-      //     errorMessage: 'Ошибка валидации полей'
-      //   }
-      //   return null
-      // }
-
       (async function () {
-        const message = `Спасибо за ответы!\n\n${name}, мы свяжемся с вами в течение 24 часов, чтобы мы смогли ответить на все оставшиеся вопросы ваши к нам и наши к вам.`;
-        console.log(`Phone number: ${whatsapp}`);
-        await sendWhatsAppMessage(whatsapp, message);
+        try {
+          const message = `Спасибо за ответы!\n\n${name}, мы свяжемся с вами в течение 24 часов, чтобы мы смогли ответить на все оставшиеся вопросы ваши к нам и наши к вам.`;
+          if (whatsapp) {
+            await sendWhatsAppMessage(whatsapp, message);
+          }
+        } catch (e) {
+          strapi.log.warn("WhatsApp send failed");
+        }
         const transporter = nodemailer.createTransport({
           host: "smtp.yandex.ru",
           port: 465,
