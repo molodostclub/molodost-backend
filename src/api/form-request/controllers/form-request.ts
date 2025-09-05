@@ -103,7 +103,7 @@ export default factories.createCoreController(
 
         await transporter.sendMail({
           from: "altay@clubmolodost.ru",
-          to: "altay@clubmolodost.ru",
+          to: "leva.shushkov@gmail.com",
           subject: "Заявка: ПРОМО с вложением",
           html,
           attachments: [attachment],
