@@ -95,15 +95,14 @@ export default factories.createCoreController(
       <h1>Заявка (ПРОМО) с вложением</h1>
       <br>
       <h3>Данные пользователя:</h3><br>
-      <h4>Имя: ${pName || "не указано"}</h4><br>
-      <h4>Фамилия: ${pSurname || "не указано"}</h4><br>
-      <h4>WhatsApp: ${pWhatsapp || "не указан"}</h4><br>
-      <h4>E-mail: ${pEmail || "не указан"}</h4><br>
+      <h4>Имя: ${pName || "не указано"}</h4>
+      <h4>Фамилия: ${pSurname || "не указано"}</h4>
+      <h4>WhatsApp: ${pWhatsapp || "не указан"}</h4>
     `;
 
         await transporter.sendMail({
           from: "altay@clubmolodost.ru",
-          to: "leva.shushkov@gmail.com",
+          to: "reservation@clubmolodost.ru",
           subject: "Заявка: ПРОМО с вложением",
           html,
           attachments: [attachment],
