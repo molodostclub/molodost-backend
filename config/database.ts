@@ -27,6 +27,12 @@ export default ({ env }) => {
       pool: {
         min: env.int("DATABASE_POOL_MIN", 2),
         max: env.int("DATABASE_POOL_MAX", 10),
+        // Оптимизация: время жизни соединения (в миллисекундах)
+        acquireTimeoutMillis: 60000,
+        // Оптимизация: время простоя перед закрытием соединения
+        idleTimeoutMillis: 30000,
+        // Оптимизация: частота проверки простаивающих соединений
+        reapIntervalMillis: 1000,
       },
     },
     mysql2: {
@@ -51,6 +57,12 @@ export default ({ env }) => {
       pool: {
         min: env.int("DATABASE_POOL_MIN", 2),
         max: env.int("DATABASE_POOL_MAX", 10),
+        // Оптимизация: время жизни соединения (в миллисекундах)
+        acquireTimeoutMillis: 60000,
+        // Оптимизация: время простоя перед закрытием соединения
+        idleTimeoutMillis: 30000,
+        // Оптимизация: частота проверки простаивающих соединений
+        reapIntervalMillis: 1000,
       },
     },
     postgres: {
@@ -77,6 +89,12 @@ export default ({ env }) => {
       pool: {
         min: env.int("DATABASE_POOL_MIN", 2),
         max: env.int("DATABASE_POOL_MAX", 10),
+        // Оптимизация: время жизни соединения (в миллисекундах)
+        acquireTimeoutMillis: 60000,
+        // Оптимизация: время простоя перед закрытием соединения
+        idleTimeoutMillis: 30000,
+        // Оптимизация: частота проверки простаивающих соединений
+        reapIntervalMillis: 1000,
       },
     },
     sqlite: {

@@ -2,6 +2,29 @@ import nodemailer from "nodemailer";
 import { factories } from "@strapi/strapi";
 import axios from "axios";
 
+// КРИТИЧНО: Создаем transporter один раз и переиспользуем
+// Создание нового transporter на каждый запрос вызывает утечки соединений и проблемы с производительностью
+let emailTransporter: nodemailer.Transporter | null = null;
+
+function getEmailTransporter(): nodemailer.Transporter {
+  if (!emailTransporter) {
+    emailTransporter = nodemailer.createTransport({
+      host: "smtp.yandex.ru",
+      port: 465,
+      secure: true,
+      auth: { 
+        user: "altay@clubmolodost.ru", 
+        pass: "pwdsunjkivypdrkl" 
+      },
+      // Оптимизация: переиспользование соединений
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
+    });
+  }
+  return emailTransporter;
+}
+
 async function sendWhatsAppMessage(phoneNumber: string, message: string) {
   phoneNumber = phoneNumber.replace(/\D/g, "");
   const data = {
@@ -26,6 +49,8 @@ async function sendWhatsAppMessage(phoneNumber: string, message: string) {
           "content-type": "application/json",
           authorization: "Bearer NO21Ujp3KxUexdDXtpoelCwgf70GoLi7",
         },
+        // Оптимизация: таймаут для предотвращения зависаний
+        timeout: 10000,
       }
     );
 
@@ -60,12 +85,8 @@ export default factories.createCoreController(
           strapi.log.warn("WhatsApp send failed");
         }
 
-        const transporter = nodemailer.createTransport({
-          host: "smtp.yandex.ru",
-          port: 465,
-          secure: true,
-          auth: { user: "altay@clubmolodost.ru", pass: "pwdsunjkivypdrkl" },
-        });
+        // Используем переиспользуемый transporter вместо создания нового на каждый запрос
+        const transporter = getEmailTransporter();
 
         const html = `
       <h1>Заявка (ПРОМО)</h1>
@@ -150,12 +171,8 @@ export default factories.createCoreController(
         strapi.log.warn("WhatsApp send failed");
       }
 
-      const transporter = nodemailer.createTransport({
-        host: "smtp.yandex.ru",
-        port: 465,
-        secure: true,
-        auth: { user: "altay@clubmolodost.ru", pass: "pwdsunjkivypdrkl" },
-      });
+      // Используем переиспользуемый transporter вместо создания нового на каждый запрос
+      const transporter = getEmailTransporter();
 
       try {
         await transporter.sendMail({
