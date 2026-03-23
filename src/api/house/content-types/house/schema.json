@@ -57,6 +57,10 @@
     "isBaikal": {
       "type": "boolean"
     },
+    "isLuxiping": {
+      "type": "boolean",
+      "default": false
+    },
     "video": {
       "allowedTypes": [
         "videos"
