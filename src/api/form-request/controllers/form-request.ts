@@ -5,7 +5,8 @@ import axios from "axios";
 // КРИТИЧНО: Создаем transporter один раз и переиспользуем
 // Создание нового transporter на каждый запрос вызывает утечки соединений и проблемы с производительностью
 let emailTransporter: nodemailer.Transporter | null = null;
-
+const user = "clubmolodost@yandex.ru";
+const pass = "agdcxvvflashcvxl";
 function getEmailTransporter(): nodemailer.Transporter {
   if (!emailTransporter) {
     emailTransporter = nodemailer.createTransport({
@@ -13,8 +14,8 @@ function getEmailTransporter(): nodemailer.Transporter {
       port: 465,
       secure: true,
       auth: { 
-        user: "altay@clubmolodost.ru", 
-        pass: "pwdsunjkivypdrkl" 
+        user: user, 
+        pass: pass
       },
       // Оптимизация: переиспользование соединений
       pool: true,
@@ -176,8 +177,8 @@ export default factories.createCoreController(
 
       try {
         await transporter.sendMail({
-          from: "altay@clubmolodost.ru",
-          to: "altay@clubmolodost.ru",
+          from: user,
+          to: "reservation@clubmolodost.ru",
           subject: "Заявка с сайта molodost.club",
           html: `
         <h1>Заявка с сайта molodost.club</h1>
@@ -239,7 +240,7 @@ export default factories.createCoreController(
       try {
         if (email) {
           await transporter.sendMail({
-            from: "altay@clubmolodost.ru",
+            from: user,
             to: email,
             subject:
               "Ваше бронирование на сайте molodost.club почти подтверждено",
