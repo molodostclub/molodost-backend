@@ -76,7 +76,6 @@ export default factories.createCoreController(
         const pSurname = body.surname || "";
         const pWhatsapp = body.whatsapp || "";
         const pEmail = body.email || "";
-        const checkAmount = String(body.checkAmount).trim();
 
         const message =
           "Спасибо, что заполнили анкету!\nВ течение 24 часов мы вышлем вам билет в «Молодость» на Алтае.";
@@ -95,13 +94,12 @@ export default factories.createCoreController(
       <h3>Данные пользователя:</h3>
       <h4>Имя: ${pName || "не указано"}</h4>
       <h4>Фамилия: ${pSurname || "не указано"}</h4>
-      <h4>WhatsApp: ${pWhatsapp || "не указан"}</h4>
-      <h4>Сумма чека: ${checkAmount || "не указана"}</h4>
+      <h4>Телефон: ${pWhatsapp || "не указан"}</h4>
     `;
 
         try {
           await transporter.sendMail({
-            from: "altay@clubmolodost.ru",
+            from: "clubmolodost@yandex.ru",
             to: "reservation@clubmolodost.ru",
             subject: "Заявка: ПРОМО (без вложения)",
             html,
@@ -121,7 +119,6 @@ export default factories.createCoreController(
           surname: pSurname,
           whatsapp: pWhatsapp,
           email: pEmail,
-          checkAmount,
         };
         return;
       }
