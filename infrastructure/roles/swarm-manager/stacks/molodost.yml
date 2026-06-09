@@ -41,6 +41,12 @@
             volumes:
               - /srv/db:/srv/.tmp/
               - /srv/public/uploads:/srv/public/uploads
+            healthcheck:
+              test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:1337/_health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+              interval: 30s
+              timeout: 5s
+              retries: 3
+              start_period: 45s
             deploy:
               labels:
                 - "traefik.enable=true"
@@ -53,6 +59,12 @@
               - traefiknet
           landing:
             image: ghcr.io/germangorodnev/molodost-landing
+            healthcheck:
+              test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+              interval: 30s
+              timeout: 5s
+              retries: 3
+              start_period: 45s
             deploy:
               labels:
                 - traefik.enable=true

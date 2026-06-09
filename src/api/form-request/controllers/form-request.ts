@@ -1,12 +1,59 @@
 import nodemailer from "nodemailer";
 import { factories } from "@strapi/strapi";
 import axios from "axios";
+import crypto from "crypto";
 
 // КРИТИЧНО: Создаем transporter один раз и переиспользуем
 // Создание нового transporter на каждый запрос вызывает утечки соединений и проблемы с производительностью
 let emailTransporter: nodemailer.Transporter | null = null;
 const user = "clubmolodost@yandex.ru";
 const pass = "agdcxvvflashcvxl";
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 20;
+const requestRateLimit = new Map<string, { count: number; resetAt: number }>();
+
+function getClientIp(ctx: any): string {
+  const xForwardedFor = ctx.request.header["x-forwarded-for"];
+  if (typeof xForwardedFor === "string" && xForwardedFor.trim()) {
+    return xForwardedFor.split(",")[0].trim();
+  }
+  return ctx.request.ip || "unknown";
+}
+
+function sanitizeForHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function cleanupRateLimitStore(now: number) {
+  for (const [key, state] of requestRateLimit.entries()) {
+    if (state.resetAt <= now) {
+      requestRateLimit.delete(key);
+    }
+  }
+}
+
+function isRateLimited(ip: string, now: number): boolean {
+  cleanupRateLimitStore(now);
+  const key = crypto.createHash("sha256").update(ip).digest("hex");
+  const state = requestRateLimit.get(key);
+
+  if (!state || state.resetAt <= now) {
+    requestRateLimit.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  if (state.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return true;
+  }
+
+  state.count += 1;
+  return false;
+}
 function getEmailTransporter(): nodemailer.Transporter {
   if (!emailTransporter) {
     emailTransporter = nodemailer.createTransport({
@@ -67,15 +114,24 @@ export default factories.createCoreController(
   ({ strapi }) => ({
     async create(ctx) {
       const body = ctx.request.body || {};
+      const now = Date.now();
+      const clientIp = getClientIp(ctx);
+
+      if (isRateLimited(clientIp, now)) {
+        ctx.status = 429;
+        ctx.body = { ok: false, error: "RATE_LIMIT_EXCEEDED" };
+        return;
+      }
+
       const hasPromo =
         typeof body.checkAmount !== "undefined" &&
         String(body.checkAmount).trim() !== "";
 
       if (hasPromo) {
-        const pName = body.name || "";
-        const pSurname = body.surname || "";
-        const pWhatsapp = body.whatsapp || "";
-        const pEmail = body.email || "";
+        const pName = String(body.name || "").trim().slice(0, 100);
+        const pSurname = String(body.surname || "").trim().slice(0, 100);
+        const pWhatsapp = String(body.whatsapp || "").trim().slice(0, 30);
+        const pEmail = String(body.email || "").trim().slice(0, 150);
 
         const message =
           "Спасибо, что заполнили анкету!\nВ течение 24 часов мы вышлем вам билет в «Молодость» на Алтае.";
@@ -162,8 +218,14 @@ export default factories.createCoreController(
         relaxTypes,
       } = body;
 
+      const safeName = sanitizeForHtml(String(name || "").trim().slice(0, 100));
+      const safeSurname = sanitizeForHtml(String(surname || "").trim().slice(0, 100));
+      const safeSource = sanitizeForHtml(String(source || "").trim().slice(0, 200));
+      const safeWhatsapp = sanitizeForHtml(String(whatsapp || "").trim().slice(0, 30));
+      const safeEmail = sanitizeForHtml(String(email || "").trim().slice(0, 150));
+
       try {
-        const message = `Спасибо за ответы!\n\n${name}, мы свяжемся с вами в течение 24 часов, чтобы мы смогли ответить на все оставшиеся вопросы ваши к нам и наши к вам.`;
+        const message = `Спасибо за ответы!\n\n${safeName}, мы свяжемся с вами в течение 24 часов, чтобы мы смогли ответить на все оставшиеся вопросы ваши к нам и наши к вам.`;
         if (whatsapp) await sendWhatsAppMessage(whatsapp, message);
       } catch (e) {
         strapi.log.warn("WhatsApp send failed");
@@ -181,11 +243,11 @@ export default factories.createCoreController(
         <h1>Заявка с сайта molodost.club</h1>
         <br>
         <h3>Информация по заявке:</h3><br>
-        <h4>Имя: ${name}</h4><br>
-        <h4>Фамилия: ${surname}</h4><br>
-        <h4>Кто рекомендовал: ${source || "не указано"}</h4><br>
-        <h4>What'sApp: ${whatsapp || "не указан"}</h4><br>
-        <h4>E-mail: ${email || "не указан"}</h4><br>
+        <h4>Имя: ${safeName || "не указано"}</h4><br>
+        <h4>Фамилия: ${safeSurname || "не указано"}</h4><br>
+        <h4>Кто рекомендовал: ${safeSource || "не указано"}</h4><br>
+        <h4>What'sApp: ${safeWhatsapp || "не указан"}</h4><br>
+        <h4>E-mail: ${safeEmail || "не указан"}</h4><br>
         <h4>Сколько раз у нас уже были: ${howManyTimes || "не указано"}</h4><br>
         <h4>Взрослых: ${adults || "не указано"}</h4><br>
         <h4>Детей: ${children || "не указано"}</h4><br>

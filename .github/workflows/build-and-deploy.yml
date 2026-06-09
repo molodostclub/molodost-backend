@@ -13,6 +13,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.20.x
+          cache: npm
+
+      - name: Verify backend build
+        run: |
+          npm ci
+          npm run build
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -52,13 +63,25 @@ jobs:
               --name molodost-backend \
               --network molodost_net \
               -p 1337:1337 \
+              --memory="1024m" \
+              --memory-swap="1024m" \
+              --cpus="1.5" \
               --restart always \
+              --health-cmd="node -e \"fetch('http://127.0.0.1:1337/_health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"" \
+              --health-interval=30s \
+              --health-timeout=5s \
+              --health-retries=3 \
+              --health-start-period=60s \
               -e APP_KEYS=${{ secrets.APP_KEYS }} \
               -e API_TOKEN_SALT=${{ secrets.API_TOKEN_SALT }} \
               -e ADMIN_JWT_SECRET=${{ secrets.ADMIN_JWT_SECRET }} \
               -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
               -e TRANSFER_TOKEN_SALT=${{ secrets.TRANSFER_TOKEN_SALT }} \
+              -e PUBLIC_URL=https://admin.molodost.club \
+              -e SERVER_REQUEST_TIMEOUT_MS=60000 \
+              -e SERVER_HEADERS_TIMEOUT_MS=65000 \
+              -e SERVER_KEEP_ALIVE_TIMEOUT_MS=5000 \
               -v /srv/public/database/data.db:/srv/db/data.db \
-              -v /srv/public/uploads:/opt/public/uploads \
+              -v /srv/public/uploads:/srv/public/uploads \
               ghcr.io/molodostclub/molodost-backend:latest
 
