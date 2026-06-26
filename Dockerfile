@@ -1,23 +1,17 @@
 FROM node:18-slim
 
-WORKDIR /opt/
+WORKDIR /app
 
-# Установка зависимостей для sharp и других нативных модулей
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3 \
-    make \
-    g++ \
-    libvips-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+ENV NODE_ENV=production
 
-# Установка пакетов
-COPY ./package.json ./package-lock.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
-# Копирование кода и сборка
-COPY . .
-RUN npm run build
+COPY server ./server
 
-EXPOSE 4000
+EXPOSE 1337
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:1337/_health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
 CMD ["npm", "start"]

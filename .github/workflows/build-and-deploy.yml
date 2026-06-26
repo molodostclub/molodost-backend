@@ -19,10 +19,13 @@ jobs:
           node-version: 18.20.x
           cache: npm
 
-      - name: Verify backend build
+      - name: Verify backend starts
         run: |
           npm ci
           npm run build
+          node server/index.mjs &
+          sleep 2
+          curl -sf http://127.0.0.1:1337/_health
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -42,7 +45,7 @@ jobs:
           tags: |
             ghcr.io/molodostclub/molodost-backend:latest
 
-      - name: Deploy to molodost-admin server
+      - name: Deploy API to server
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SERVER_ADMIN_IP }}
@@ -51,37 +54,30 @@ jobs:
           script: |
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            echo "Pulling latest backend image"
             docker pull ghcr.io/molodostclub/molodost-backend:latest
 
-            echo "Stopping and removing old container"
             docker stop molodost-backend || true
             docker rm molodost-backend || true
 
-            echo "Running new container"
+            docker network create molodost_net || true
+
             docker run -d \
               --name molodost-backend \
               --network molodost_net \
               -p 1337:1337 \
-              --memory="1024m" \
-              --memory-swap="1024m" \
-              --cpus="1.5" \
-              --restart always \
+              --memory="256m" \
+              --memory-swap="256m" \
+              --cpus="0.5" \
+              --restart unless-stopped \
               --health-cmd="node -e \"fetch('http://127.0.0.1:1337/_health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"" \
               --health-interval=30s \
               --health-timeout=5s \
               --health-retries=3 \
-              --health-start-period=60s \
-              -e APP_KEYS=${{ secrets.APP_KEYS }} \
-              -e API_TOKEN_SALT=${{ secrets.API_TOKEN_SALT }} \
-              -e ADMIN_JWT_SECRET=${{ secrets.ADMIN_JWT_SECRET }} \
-              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-              -e TRANSFER_TOKEN_SALT=${{ secrets.TRANSFER_TOKEN_SALT }} \
-              -e PUBLIC_URL=https://admin.molodost.club \
-              -e SERVER_REQUEST_TIMEOUT_MS=60000 \
-              -e SERVER_HEADERS_TIMEOUT_MS=65000 \
-              -e SERVER_KEEP_ALIVE_TIMEOUT_MS=5000 \
-              -v /srv/public/database/data.db:/srv/db/data.db \
-              -v /srv/public/uploads:/srv/public/uploads \
+              --health-start-period=20s \
+              -e SMTP_USER="${{ secrets.SMTP_USER }}" \
+              -e SMTP_PASS="${{ secrets.SMTP_PASS }}" \
+              -e SMTP_HOST="${{ secrets.SMTP_HOST }}" \
+              -e SMTP_TO="${{ secrets.SMTP_TO }}" \
+              -e WHAPI_TOKEN="${{ secrets.WHAPI_TOKEN }}" \
+              -e CORS_ORIGINS="https://molodost.club,https://www.molodost.club" \
               ghcr.io/molodostclub/molodost-backend:latest
-

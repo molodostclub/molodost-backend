@@ -1,61 +1,52 @@
-# Molodost admin panel
+# molodost-api
 
+Minimal Express service for **form submissions** on [molodost.club](https://molodost.club).
 
-## How to update infrastructure
-This repository has `infrastructure` branch: push to it when you want to update the underlying docker/traefik infrastructure. Ansible config is in `infrastructure` folder. 
+CMS content lives in [molodost-frontend](https://github.com/molodostclub/molodost-frontend).  
+This repo sends mail via **nodemailer** (Yandex SMTP) and optional WhatsApp (Whapi).
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html) (CLI) which lets you scaffold and manage your project in seconds.
-
-### `develop`
-
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-develop)
+## Structure
 
 ```
-npm run develop
-# or
-yarn develop
+server/
+  index.mjs                      # Express app, health + routes
+  form-request.mjs               # Form handler (SMTP + WhatsApp)
+  email-templates.mjs            # User confirmation email builder
+  user-confirmation-email.html.tpl
+  load-env.mjs                   # Loads .env.local / .env in dev
 ```
 
-### `start`
+## Endpoints
 
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-start)
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/form-requests` | Form handler |
+| `POST` | `/api/form-request` | Alias |
+| `GET` | `/_health` | Healthcheck |
 
-```
-npm run start
-# or
-yarn start
-```
+## Local development
 
-### `build`
+```bash
+cp .env.example .env.local
+# fill SMTP_USER, SMTP_PASS, WHAPI_TOKEN
 
-Build your admin panel. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-build)
-
-```
-npm run build
-# or
-yarn build
+npm install
+npm run dev
 ```
 
-## ⚙️ Deployment
+Frontend (same machine):
 
-Strapi gives you many possible deployment options for your project. Find the one that suits you on the [deployment section of the documentation](https://docs.strapi.io/developer-docs/latest/setup-deployment-guides/deployment.html).
+```bash
+# molodost-frontend/.env.local
+FORM_API_URL=http://127.0.0.1:1337
+npm run dev
+```
 
-## 📚 Learn more
+## Production (one server, two containers)
 
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://docs.strapi.io) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
+Both containers on Docker network `molodost_net`:
 
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
+- **API:** `molodost-backend` — port `1337`, env `SMTP_*`, `WHAPI_TOKEN`
+- **Frontend:** `molodost_frontend` — env `FORM_API_URL=http://molodost-backend:1337`
 
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+Browser → `POST /api/form-request` (Next.js proxy) → `POST http://molodost-backend:1337/api/form-requests` → SMTP.
